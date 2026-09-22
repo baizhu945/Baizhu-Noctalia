@@ -157,13 +157,11 @@ wallpaper_scheme = "m3-tonal-spot"
 # V4/Quickshell 使用现有 QS_ICON_THEME=Fluent；原生 V5 默认仍是 system。
 icon_theme_source = "qs_environment"
 
-# Keep the established wallpaper-palette integration alive while the v4 shell
-# remains the default. The Home Manager module installs the input template;
-# the existing wallpaper-theme-sync user service consumes this output and
-# updates DankMaterialShell, Waybar lyrics, and mouse-trail.
-[theme.templates.user.v4_compat_colors]
+# Export the V5 wallpaper palette for the Waybar lyrics and mouse-trail sync
+# service without creating any legacy shell configuration under ~/.config.
+[theme.templates.user.integrations]
 input_path  = "$XDG_CONFIG_HOME/noctalia/templates/noctalia-colors.json"
-output_path = "$XDG_CONFIG_HOME/noctalia/colors.json"
+output_path = "$XDG_STATE_HOME/noctalia/wallpaper-colors.json"
 
 # ── Wallpaper ─────────────────────────────────────────────────────────────────
 # v4: /home/baizhu945/Downloads/Wallpaper/Static, random 600s, crop, disc transition
@@ -691,7 +689,7 @@ color                     = "primary"
 font_scale                = 1.0769230769
 group_by_workspace        = false
 show_window_title         = true
-window_title_max_width    = 170
+window_title_max_width    = 144
 taskbar_max_width         = 1200
 item_spacing              = 6
 only_active_workspace     = false

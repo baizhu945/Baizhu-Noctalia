@@ -83,9 +83,7 @@ let
 in
 {
   # Use Home Manager's native v5 module for the package, TOML configuration,
-  # config validation, and (when explicitly enabled later) systemd unit.
-  # Keep systemd disabled for now: shell-services.nix intentionally continues
-  # to start the existing Noctalia v4 shell until the v5 setup is accepted.
+  # and config validation. shell-services.nix owns the customized user unit.
   programs.noctalia = {
     enable = true;
     package = noctalia;
@@ -110,66 +108,35 @@ in
     wf-recorder
     tesseract
 
-    # Keep every existing Niri hotkey working with the default V4 shell while
-    # transparently routing the same intent to V5 during side-by-side testing.
-    # This does not alter shell-services.nix or which bar starts by default.
+    # Stable dispatcher used by existing Niri keybindings.
     (writeShellScriptBin "noctalia-compat" ''
       set -u
-
-      if noctalia msg status >/dev/null 2>&1; then
-        use_v5=1
-      else
-        use_v5=0
-      fi
-
       action="''${1:-}"
       shift || true
-      if [ "$use_v5" -eq 1 ]; then
-        case "$action" in
-          hotkeys)        exec noctalia msg panel-toggle baizhu/keybind_cheatsheet:panel ;;
-          launcher)       exec noctalia msg panel-toggle launcher ;;
-          emoji)          exec noctalia msg panel-toggle launcher /emo ;;
-          clipboard)      exec noctalia msg panel-toggle clipboard ;;
-          bar-toggle)     exec noctalia msg bar-toggle ;;
-          desktop-toggle) exec noctalia msg desktop-widgets-toggle ;;
-          notify)         exec noctalia msg notification-show "''${*:-Noctalia}" ;;
-          toolkit)        exec noctalia msg plugin baizhu/screen_toolkit:service all "''${1:-toggle}" ;;
-          media)          exec noctalia msg media "''${1:-toggle}" ;;
-          brightness-up)  exec noctalia msg brightness-up current 5% ;;
-          brightness-down) exec noctalia msg brightness-down current 5% ;;
-          dark)           exec noctalia msg theme-mode-set dark ;;
-          power-saver)    exec noctalia msg power-set power-saver ;;
-          *) printf 'Unknown noctalia-compat action: %s\n' "$action" >&2; exit 2 ;;
-        esac
-      else
-        case "$action" in
-          hotkeys)        exec noctalia-shell ipc call plugin:keybind-cheatsheet toggle ;;
-          launcher)       exec noctalia-shell ipc call launcher toggle ;;
-          emoji)          exec noctalia-shell ipc call launcher emoji ;;
-          clipboard)      exec noctalia-shell ipc call launcher clipboard ;;
-          bar-toggle)     exec noctalia-shell ipc call bar toggle ;;
-          desktop-toggle) exec noctalia-shell ipc call desktopWidgets toggle ;;
-          notify)         exec noctalia-shell ipc call toast send "{\"title\":\"''${*:-Noctalia}\"}" ;;
-          toolkit)        exec noctalia-shell ipc call plugin:screen-toolkit "''${1:-toggle}" ;;
-          media)          exec noctalia-shell ipc call media "''${1:-toggle}" ;;
-          brightness-up)  exec noctalia-shell ipc call brightness increase ;;
-          brightness-down) exec noctalia-shell ipc call brightness decrease ;;
-          dark)           exec noctalia-shell ipc call darkMode setDark ;;
-          power-saver)    exec noctalia-shell ipc call powerProfile set powersaver ;;
-          *) printf 'Unknown noctalia-compat action: %s\n' "$action" >&2; exit 2 ;;
-        esac
-      fi
+      case "$action" in
+        hotkeys)         exec noctalia msg panel-toggle baizhu/keybind_cheatsheet:panel ;;
+        launcher)        exec noctalia msg panel-toggle launcher ;;
+        emoji)           exec noctalia msg panel-toggle launcher /emo ;;
+        clipboard)       exec noctalia msg panel-toggle clipboard ;;
+        bar-toggle)      exec noctalia msg bar-toggle ;;
+        desktop-toggle)  exec noctalia msg desktop-widgets-toggle ;;
+        notify)          exec noctalia msg notification-show "''${*:-Noctalia}" ;;
+        toolkit)         exec noctalia msg plugin baizhu/screen_toolkit:service all "''${1:-toggle}" ;;
+        media)           exec noctalia msg media "''${1:-toggle}" ;;
+        brightness-up)   exec noctalia msg brightness-up current 5% ;;
+        brightness-down) exec noctalia msg brightness-down current 5% ;;
+        dark)            exec noctalia msg theme-mode-set dark ;;
+        power-saver)     exec noctalia msg power-set power-saver ;;
+        *) printf 'Unknown noctalia-compat action: %s\n' "$action" >&2; exit 2 ;;
+      esac
     '')
   ];
 
   # Home Manager's Noctalia module manages config.toml but intentionally has
   # no plugin-source option, so keep the local v5 plugin tree declarative here.
-  # The legacy ~/.config/noctalia/plugins/ tree remains untouched for v4.
   home.file = {
-    # The existing wallpaper-theme-sync service consumes the legacy colors.json
-    # shape. This v5 template regenerates that compatibility file whenever the
-    # v5 wallpaper palette changes, keeping DMS, Waybar lyrics, and mouse-trail
-    # synchronized without modifying the v4 shell service.
+    # V5 exports its wallpaper palette to XDG_STATE_HOME; the sync service uses
+    # this template for Waybar lyrics and mouse-trail colors.
     ".config/noctalia/templates/noctalia-colors.json".source = ./noctalia-colors.json;
     ".config/noctalia/v5-plugins/catwalk-v5".source = localPluginSources."catwalk-v5";
     ".config/noctalia/v5-plugins/media-mini-v5".source = localPluginSources."media-mini-v5";
