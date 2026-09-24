@@ -333,7 +333,7 @@ local function categoryNode(category)
             count += 1
             table.insert(children, ui.row({ key = `bind-{category.title}-{count}`, gap = 8, align = "center" }, {
                 ui.row({ fill = keyFill(bind.rawKey), radius = 5, width = 170, paddingH = 8, paddingV = 4, align = "center" }, {
-                    ui.label({ text = bind.keys, color = "#FFFFFF", fontWeight = "bold", maxLines = 1 }),
+                    ui.label({ text = bind.keys, color = "#FFFFFF", fontSize = 12, fontWeight = "bold", maxLines = 1 }),
                 }),
                 ui.label({ text = bind.description, color = "on_surface", flexGrow = 1, maxLines = 2 }),
             }))

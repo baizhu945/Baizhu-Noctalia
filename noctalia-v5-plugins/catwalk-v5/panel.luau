@@ -27,14 +27,10 @@ end
 
 selectIcons()
 
-local lastInterval = 0
-
-local function setInterval(ms)
-    if ms ~= lastInterval then
-        lastInterval = ms
-        noctalia.setUpdateInterval(ms)
-    end
-end
+-- Panel entries do not use noctalia.setUpdateInterval (that timer is for bar
+-- widgets/services). Advance the cat using the panel's frame ticks instead.
+local frameInterval = 400
+local elapsedMs = 0
 
 local function currentCpu()
     local stats = noctalia.systemStats()
@@ -56,10 +52,10 @@ local function render()
     local running = cpu >= threshold
     if running then
         activeFrame = (activeFrame % #activeIcons) + 1
-        setInterval(math.max(30, math.floor(200 - cpu * 1.7)))
+        frameInterval = math.max(30, math.floor(200 - cpu * 1.7))
     else
         idleFrame = (idleFrame % #idleIcons) + 1
-        setInterval(400)
+        frameInterval = 400
     end
     local path = running and activeIcons[activeFrame] or idleIcons[idleFrame]
     panel.render(ui.column({ gap = 16, align = "center", justify = "center" }, {
@@ -70,11 +66,17 @@ local function render()
 end
 
 function onOpen(_context)
+    elapsedMs = 0
+    panel.setNeedsFrameTick(true)
     render()
 end
 
-function update()
-    render()
+function onFrameTick(deltaMs)
+    elapsedMs += tonumber(deltaMs) or 0
+    if elapsedMs >= frameInterval then
+        elapsedMs %= frameInterval
+        render()
+    end
 end
 
 function onClose()

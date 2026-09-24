@@ -1,7 +1,7 @@
 id = "baizhu/catwalk"
 name = "Catwalk"
 version = "1.0.0"
-plugin_api = 14
+plugin_api = 18
 author = "baizhu945"
 license = "MIT"
 dependencies = []
