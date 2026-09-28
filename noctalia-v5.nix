@@ -40,6 +40,7 @@ let
       python3 ${./patches/patch-spectrum-frequency-range.py}
       python3 ${./patches/patch-osd-timeout.py}
       python3 ${./patches/patch-taskbar-title-color.py}
+      python3 ${./patches/patch-control-center-eight-shortcuts.py}
     '';
   });
 

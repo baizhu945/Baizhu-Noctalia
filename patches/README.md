@@ -20,3 +20,4 @@ Each script patches one compatibility concern and aborts when its expected upstr
 16. `patch-spectrum-frequency-range.py` — add configurable shared spectrum cutoffs (native defaults: 20–20000 Hz).
 17. `patch-osd-timeout.py` — add configurable OSD auto-hide delay (native default: 1400 ms).
 18. `patch-taskbar-title-color.py` — make flat taskbar window titles honor the widget foreground color (native fallback remains `on_surface`).
+19. `patch-control-center-eight-shortcuts.py` — allow up to 8 Control Center Home shortcuts in the grid and Settings (native default shortcuts remain unchanged).

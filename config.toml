@@ -715,8 +715,8 @@ type = "baizhu/bottom_bar:display-hub"
 # CONTROL CENTER — 控制中心
 # ═══════════════════════════════════════════════════════════════════════════════
 # V4 还原: 网络、蓝牙、壁纸、Deep Clean、电源配置、保持唤醒、
-# 暗色模式、SuperGFX。V5 的设置界面只允许交互添加 6 项，但运行时
-# grid 支持 8 项，因此声明式配置保留 V4 的完整 4×2 顺序。
+# 暗色模式、SuperGFX。本地补丁将 V5 Home 快捷按钮上限扩展到 8，
+# 保留现有 4×2 顺序；原生默认快捷按钮列表不变。
 
 [control_center]
 sidebar = "compact"
