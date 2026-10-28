@@ -63,3 +63,29 @@ replace(
 """,
     "stable and legacy desktop output lookup",
 )
+replace(
+    "src/shell/desktop/desktop_widget_layout.h",
+    """          && (selector.empty() || outputKey(output) == selector)) {
+""",
+    """          && (selector.empty() || outputKey(output) == selector || output.connectorName == selector)) {
+""",
+    "exact connector selection",
+)
+replace(
+    "src/shell/lockscreen/lockscreen_login_box.cpp",
+    """      if (selection.output != nullptr && desktop_widgets::outputKey(*selection.output) == outputKey) {
+""",
+    """      if (selection.output != nullptr
+          && (desktop_widgets::outputKey(*selection.output) == outputKey
+              || selection.output->connectorName == outputKey)) {
+""",
+    "login box connector alias",
+)
+replace(
+    "tests/desktop_widget_output_test.cpp",
+    """    TEST_CHECK(generated->outputName == "DP-11");
+""",
+    """    TEST_CHECK(generated->outputName == "hardware:Acme|Landscape|LANDSCAPE123");
+""",
+    "login box hardware identity",
+)

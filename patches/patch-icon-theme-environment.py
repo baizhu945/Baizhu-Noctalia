@@ -56,11 +56,11 @@ replace(
 replace(
     "src/system/icon_resolver.h",
     """  static bool checkThemeChanged();
-  static std::uint64_t themeGeneration();
+  static bool checkThemePlanChanged();
 """,
     """  static bool setPreferQsEnvironment(bool enabled);
   static bool checkThemeChanged();
-  static std::uint64_t themeGeneration();
+  static bool checkThemePlanChanged();
 """,
     "icon theme source API",
 )
@@ -126,12 +126,31 @@ replace(
 )
 replace(
     "src/system/icon_resolver.cpp",
+    """  bool updateThemeStateLocked(IconThemeState& state, bool includeContentChanges) {
+    IconThemePlan next = buildThemePlan();
+""",
+    """  bool updateThemeStateLocked(IconThemeState& state, bool includeContentChanges) {
+    IconThemePlan next = buildThemePlan(state.preferQsEnvironment);
+""",
+    "icon theme reload plan",
+)
+replace(
+    "src/system/icon_resolver.cpp",
+    """  std::scoped_lock lock(state.mutex);
+  IconThemePlan next = buildThemePlan();
+  state.plan = std::move(next);
+""",
+    """  std::scoped_lock lock(state.mutex);
+  IconThemePlan next = buildThemePlan(state.preferQsEnvironment);
+  state.plan = std::move(next);
+""",
+    "icon theme invalidate plan",
+)
+replace(
+    "src/system/icon_resolver.cpp",
     """IconResolver::IconResolver() : IconResolver(false) {}
 
 bool IconResolver::checkThemeChanged() {
-  auto& state = iconThemeState();
-  std::scoped_lock lock(state.mutex);
-  IconThemePlan next = buildThemePlan();
 """,
     """IconResolver::IconResolver() : IconResolver(false) {}
 
@@ -142,7 +161,7 @@ bool IconResolver::setPreferQsEnvironment(bool enabled) {
     return false;
   }
   IconThemePlan next = buildThemePlan(enabled);
-  const bool changed = state.initialized && next.signature != state.plan.signature;
+  const bool changed = state.initialized && next.planSignature != state.plan.planSignature;
   state.preferQsEnvironment = enabled;
   state.plan = std::move(next);
   state.initialized = true;
@@ -153,9 +172,6 @@ bool IconResolver::setPreferQsEnvironment(bool enabled) {
 }
 
 bool IconResolver::checkThemeChanged() {
-  auto& state = iconThemeState();
-  std::scoped_lock lock(state.mutex);
-  IconThemePlan next = buildThemePlan(state.preferQsEnvironment);
 """,
     "icon theme live source selection",
 )
@@ -178,9 +194,13 @@ replace(
         : Input::PasswordMaskStyle::CircleFilled;
     Input::setPasswordMaskStyle(style);
   };
+  auto applyInputConfig = [this]() {
+    Input::setReadlineShortcutsEnabled(m_configService.config().shell.readlineShortcuts);
+  };
   applyMotionConfig();
   applyStyleConfig();
   applyPasswordMaskStyle();
+  applyInputConfig();
 """,
     """  auto applyPasswordMaskStyle = [this]() {
     const auto style = m_configService.config().shell.passwordMaskStyle == PasswordMaskStyle::RandomIcons
@@ -195,17 +215,21 @@ replace(
       onIconThemeChanged();
     }
   };
+  auto applyInputConfig = [this]() {
+    Input::setReadlineShortcutsEnabled(m_configService.config().shell.readlineShortcuts);
+  };
   applyMotionConfig();
   applyStyleConfig();
   applyPasswordMaskStyle();
   applyIconThemeSource(false);
+  applyInputConfig();
 """,
     "icon theme source initial application",
 )
 replace(
     "src/app/application_services.cpp",
     """  m_configService.addReloadCallback(applyPasswordMaskStyle);
-  m_configService.addReloadCallback([this]() {
+  m_configService.addReloadCallback(applyInputConfig);
 """,
     """  m_configService.addReloadCallback(applyPasswordMaskStyle);
   m_configService.addReloadCallback(
@@ -216,7 +240,7 @@ replace(
       },
       "icon-theme-source"
   );
-  m_configService.addReloadCallback([this]() {
+  m_configService.addReloadCallback(applyInputConfig);
 """,
     "icon theme source reload",
 )

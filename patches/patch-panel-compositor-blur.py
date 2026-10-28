@@ -17,12 +17,12 @@ replace(
     "src/config/config_types.h",
     """  struct PanelConfig {
     PanelTransparencyMode transparencyMode = PanelTransparencyMode::Solid;
-    bool borders = true;                   // outline on floating panel surfaces
+    bool borders = true; // outline on floating panel surfaces
 """,
     """  struct PanelConfig {
     PanelTransparencyMode transparencyMode = PanelTransparencyMode::Solid;
-    bool compositorBlurEnabled = true;     // submit rounded panel blur regions to the compositor
-    bool borders = true;                   // outline on floating panel surfaces
+    bool compositorBlurEnabled = true; // submit rounded panel blur regions to the compositor
+    bool borders = true; // outline on floating panel surfaces
 """,
     "panel compositor blur config type",
 )

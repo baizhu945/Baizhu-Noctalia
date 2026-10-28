@@ -15,12 +15,12 @@ def replace(path: str, old: str, new: str, label: str) -> None:
 
 replace(
     "src/render/core/render_styles.h",
-    """  bool reversed = false;
-  bool centered = false;
+    """  bool centered = false;
+  bool wave = false;
 };
 """,
-    """  bool reversed = false;
-  bool centered = false;
+    """  bool centered = false;
+  bool wave = false;
   bool v4Style = false;
 };
 """,
@@ -28,11 +28,11 @@ replace(
 )
 replace(
     "src/render/core/render_styles.h",
-    """      && lhs.reversed == rhs.reversed
-      && lhs.centered == rhs.centered;
+    """      && lhs.centered == rhs.centered
+      && lhs.wave == rhs.wave;
 """,
-    """      && lhs.reversed == rhs.reversed
-      && lhs.centered == rhs.centered
+    """      && lhs.centered == rhs.centered
+      && lhs.wave == rhs.wave
       && lhs.v4Style == rhs.v4Style;
 """,
     "DeskVis renderer style equality",
@@ -105,52 +105,52 @@ replace(
 )
 replace(
     "src/render/programs/audio_spectrum_program.cpp",
-    """    float crossPixels = std::max(1.0F, std::floor(rawValue * crossAxisLen * crossPixelScale + 0.5F));
+    """      float crossPixels = std::max(1.0F, std::floor(rawValue * crossAxisLen * crossPixelScale + 0.5F));
 """,
-    """    const float minimumCrossPixels = style.v4Style ? crossPixelScale : 1.0F;
-    float crossPixels =
-        std::max(minimumCrossPixels, std::floor(rawValue * crossAxisLen * crossPixelScale + 0.5F));
+    """      const float minimumCrossPixels = style.v4Style ? crossPixelScale : 1.0F;
+      float crossPixels =
+          std::max(minimumCrossPixels, std::floor(rawValue * crossAxisLen * crossPixelScale + 0.5F));
 """,
     "DeskVis configurable minimum amplitude",
 )
 replace(
     "src/render/programs/audio_spectrum_program.cpp",
-    """    const float t = barCount <= 1 ? 0.0F : static_cast<float>(i) / static_cast<float>(barCount - 1);
-    const Color color = colorAt(style.color1, style.color2, t);
-
-    if (horizontal) {
-      pushQuad(m_vertices, mainStart, crossStart, mainEnd, crossEnd, color);
-    } else {
-      pushQuad(m_vertices, crossStart, mainStart, crossEnd, mainEnd, color);
-    }
-""",
-    """    if (style.v4Style) {
-      Color freeEnd = style.color2;
-      freeEnd.a *= 0.75F;
-      const Color anchoredEnd = style.color1;
-      if (horizontal) {
-        pushGradientQuad(m_vertices, mainStart, crossStart, mainEnd, crossEnd, freeEnd, anchoredEnd, true);
-      } else {
-        pushGradientQuad(m_vertices, crossStart, mainStart, crossEnd, mainEnd, freeEnd, anchoredEnd, false);
-      }
-    } else {
-      const float t = barCount <= 1 ? 0.0F : static_cast<float>(i) / static_cast<float>(barCount - 1);
+    """      const float t = barCount <= 1 ? 0.0F : static_cast<float>(i) / static_cast<float>(barCount - 1);
       const Color color = colorAt(style.color1, style.color2, t);
+
       if (horizontal) {
         pushQuad(m_vertices, mainStart, crossStart, mainEnd, crossEnd, color);
       } else {
         pushQuad(m_vertices, crossStart, mainStart, crossEnd, mainEnd, color);
       }
-    }
+""",
+    """      if (style.v4Style) {
+        Color freeEnd = style.color2;
+        freeEnd.a *= 0.75F;
+        const Color anchoredEnd = style.color1;
+        if (horizontal) {
+          pushGradientQuad(m_vertices, mainStart, crossStart, mainEnd, crossEnd, freeEnd, anchoredEnd, true);
+        } else {
+          pushGradientQuad(m_vertices, crossStart, mainStart, crossEnd, mainEnd, freeEnd, anchoredEnd, false);
+        }
+      } else {
+        const float t = barCount <= 1 ? 0.0F : static_cast<float>(i) / static_cast<float>(barCount - 1);
+        const Color color = colorAt(style.color1, style.color2, t);
+        if (horizontal) {
+          pushQuad(m_vertices, mainStart, crossStart, mainEnd, crossEnd, color);
+        } else {
+          pushQuad(m_vertices, crossStart, mainStart, crossEnd, mainEnd, color);
+        }
+      }
 """,
     "DeskVis configurable gradient behavior",
 )
 replace(
     "src/ui/visuals/audio_visualizer.h",
-    """  void setCentered(bool centered);
+    """  void setWave(bool wave);
   void setSmoothingTimeMs(float tauMs) noexcept { m_smoothingTauMs = std::max(0.0F, tauMs); }
 """,
-    """  void setCentered(bool centered);
+    """  void setWave(bool wave);
   void setV4Style(bool enabled);
   void setSmoothingTimeMs(float tauMs) noexcept { m_smoothingTauMs = std::max(0.0F, tauMs); }
 """,
@@ -158,17 +158,17 @@ replace(
 )
 replace(
     "src/ui/visuals/audio_visualizer.cpp",
-    """void AudioVisualizer::setCentered(bool centered) {
+    """void AudioVisualizer::setWave(bool wave) {
   auto next = style();
-  next.centered = centered;
+  next.wave = wave;
   setStyle(next);
 }
 
 void AudioVisualizer::syncPalette() {
 """,
-    """void AudioVisualizer::setCentered(bool centered) {
+    """void AudioVisualizer::setWave(bool wave) {
   auto next = style();
-  next.centered = centered;
+  next.wave = wave;
   setStyle(next);
 }
 
@@ -206,20 +206,21 @@ replace(
 )
 replace(
     "src/shell/desktop/widgets/desktop_audio_visualizer_widget.cpp",
-    """      m_reversed(options.reversed), m_centered(options.centered), m_showWhenIdle(options.showWhenIdle),
-      m_color1(options.color1), m_color2(options.color2) {}
+    """      m_reversed(options.reversed), m_centered(options.centered), m_wave(options.wave),
+      m_showWhenIdle(options.showWhenIdle), m_color1(options.color1), m_color2(options.color2) {}
 """,
-    """      m_reversed(options.reversed), m_centered(options.centered), m_showWhenIdle(options.showWhenIdle),
-      m_v4Profile(options.v4Profile), m_color1(options.color1), m_color2(options.color2) {}
+    """      m_reversed(options.reversed), m_centered(options.centered), m_wave(options.wave),
+      m_showWhenIdle(options.showWhenIdle), m_v4Profile(options.v4Profile), m_color1(options.color1),
+      m_color2(options.color2) {}
 """,
     "DeskVis profile constructor",
 )
 replace(
     "src/shell/desktop/widgets/desktop_audio_visualizer_widget.cpp",
-    """  visualizer->setReversed(m_reversed);
+    """  visualizer->setWave(m_wave);
   visualizer->setGradient(m_color1, m_color2);
 """,
-    """  visualizer->setReversed(m_reversed);
+    """  visualizer->setWave(m_wave);
   visualizer->setV4Style(m_v4Profile);
   visualizer->setGradient(m_color1, m_color2);
 """,
@@ -270,15 +271,17 @@ replace(
 replace(
     "src/shell/desktop/desktop_widget_settings_registry.cpp",
     """    } else if (type == "audio_visualizer") {
-      add(intSpec("bands", 32, 4.0, 128.0, 4.0));
+      auto bands = intSpec("bands", 32, 4.0, 128.0, 4.0);
 """,
     """    } else if (type == "audio_visualizer") {
-      add(segmentedSpec(
+      auto profile = segmentedSpec(
           "visualizer_profile", "native",
           {{"native", "desktop-widgets.editor.settings.visualizer-profile-native"},
            {"v4", "desktop-widgets.editor.settings.visualizer-profile-v4"}}
-      ));
-      add(intSpec("bands", 32, 4.0, 128.0, 4.0));
+      );
+      profile.visibleWhen = WidgetSettingVisibility{"show_wave", {"false"}};
+      add(std::move(profile));
+      auto bands = intSpec("bands", 32, 4.0, 128.0, 4.0);
 """,
     "DeskVis editor profile",
 )

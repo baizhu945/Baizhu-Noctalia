@@ -32,11 +32,11 @@ struct AudioConfig {
 )
 replace(
     "src/config/config_types.h",
-    """  std::string notificationSound;
+    """  std::string soundTheme = "freedesktop";
 
   bool operator==(const AudioConfig&) const = default;
 """,
-    """  std::string notificationSound;
+    """  std::string soundTheme = "freedesktop";
   AudioSpectrumConfig spectrum;
 
   bool operator==(const AudioConfig&) const = default;
@@ -68,10 +68,10 @@ replace(
 )
 replace(
     "src/config/schema/config_schema.cpp",
-    """        field(&AudioConfig::notificationSound, "notification_sound"),
+    """        field(&AudioConfig::soundTheme, "sound_theme")
     };
 """,
-    """        field(&AudioConfig::notificationSound, "notification_sound"),
+    """        field(&AudioConfig::soundTheme, "sound_theme"),
         subTable(&AudioConfig::spectrum, "spectrum", audioSpectrumSchema()),
     };
 """,
@@ -140,7 +140,7 @@ void PipeWireSpectrum::setUpperCutoff(int freq) { setFrequencyRange(m_lowerCutof
 replace(
     "src/app/application_services.cpp",
     """    m_pipewireSpectrum = std::make_unique<PipeWireSpectrum>(*m_pipewireService);
-    m_soundPlayer = std::make_shared<SoundPlayer>(m_pipewireService->loop());
+    m_umbrielAudioProvider =
 """,
     """    m_pipewireSpectrum = std::make_unique<PipeWireSpectrum>(*m_pipewireService);
     auto applySpectrumConfig = [this]() {
@@ -159,7 +159,7 @@ replace(
         },
         "audio-spectrum"
     );
-    m_soundPlayer = std::make_shared<SoundPlayer>(m_pipewireService->loop());
+    m_umbrielAudioProvider =
 """,
     "audio spectrum config lifecycle",
 )

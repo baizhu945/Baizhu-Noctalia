@@ -409,6 +409,10 @@ position           = "top"
 # V4 density=default resolves to a 31px bar.
 thickness          = 31
 background_opacity = 0.0
+# 5.4 blurs the bar unless this is false. A fully transparent bar stays unblurred.
+compositor_blur    = false
+# Whole-widget hover wash defaults on since 5.3. Keep the previous bar.
+hover_highlight    = false
 radius             = 12
 # V4 barType=simple ignores marginHorizontal/marginVertical; the bar touches
 # the screen edges and spans the full width.
@@ -450,6 +454,8 @@ position                 = "bottom"
 enabled                  = true
 thickness                = 31
 background_opacity       = 0.0
+compositor_blur          = false
+hover_highlight          = false
 radius                   = 12
 margin_ends              = 0
 margin_edge              = 0
@@ -638,7 +644,7 @@ scroll_down = "volume-down 5%"
 [widget.brightness]
 type                  = "brightness"
 show_label            = false
-show_when_unavailable = true
+show_when_unavailable = false
 capsule_radius        = 16 # V4 BarPillHorizontal: Style.radiusM
 
 [widget.brightness.actions]
