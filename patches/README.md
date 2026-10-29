@@ -7,7 +7,7 @@ Each script patches one compatibility concern and aborts when its expected upstr
 3. `patch-screenshot-secondary-click.py` — add `widget.*.secondary_click = "menu" | "fullscreen"` (native default: `menu`).
 4. `patch-panel-prewarm-blur.py` — disable panel blur prewarming.
 5. `patch-icon-raster-quality.py` — improve launcher, workspace/taskbar, and tray HiDPI icon rasterization.
-6. `patch-brightness-fallback.py` — keep the previous unavailable brightness glyph. `show_when_unavailable` is native in 5.4.0.
+6. `patch-tray-drawer-relayout.py` — lay drawer icons out again after the async icon-theme scan rebuilds them.
 7. `patch-panel-click-anchor.py` — anchor attached panels to the widget that opened them.
 8. `patch-panel-background-opacity.py` — keep panel opacity independent of transparent bar opacity.
 9. `patch-panel-compositor-blur.py` — add `shell.panel.compositor_blur_enabled` (native default: `true`).

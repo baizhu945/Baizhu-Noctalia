@@ -1,17 +1,33 @@
 { pkgs, ... }:
 
 let
+  # Pin the complete nixpkgs package set that provides Noctalia 5.4.0 instead
+  # of following later channel updates. Channel updates cannot move the package
+  # or its dependencies underneath the source patches below.
+  noctaliaNixpkgsTarball = builtins.fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/31ecbaca1bdefa45dffc409f0250bd8039ea0010.tar.gz";
+    sha256 = "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=";
+  };
+  noctaliaPkgs = import noctaliaNixpkgsTarball {
+    config = {
+      allowUnfree = true;
+      allowInsecure = true;
+    };
+    system = pkgs.stdenv.hostPlatform.system;
+  };
+
   # Source-level V4 compatibility changes live as single-purpose patch scripts
-  # under patches/. They target the channel's Noctalia 5.4.0 sources. Keep this
-  # derivation declarative and limited to applying them in dependency order.
-  noctalia = pkgs.noctalia.overrideAttrs (old: {
-    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.python3 ];
+  # under patches/. Keep this derivation declarative and limited to applying
+  # them in dependency order.
+  noctalia = noctaliaPkgs.noctalia.overrideAttrs (old: {
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ noctaliaPkgs.python3 ];
     postPatch = (old.postPatch or "") + ''
       python3 ${./patches/patch-media-mini.py}
       python3 ${./patches/patch-stable-output.py}
       python3 ${./patches/patch-screenshot-secondary-click.py}
       python3 ${./patches/patch-panel-prewarm-blur.py}
       python3 ${./patches/patch-icon-raster-quality.py}
+      python3 ${./patches/patch-tray-drawer-relayout.py}
       python3 ${./patches/patch-panel-click-anchor.py}
       python3 ${./patches/patch-panel-background-opacity.py}
       python3 ${./patches/patch-panel-compositor-blur.py}
